@@ -39,11 +39,16 @@ const parseM3U = (content) => {
   return playlist;
 };
 
-const generateAnym3uUrl = (videoUrl, subtitleUrl) => {
-  let baseUrl = `https://anym3u8player.com/ultimate-player-generator/player.php?player=jwplayer&url=${videoUrl}&autoplay=1&muted=1&controls=auto&theme=default`;
+// ปรับปรุงฟังก์ชันสร้าง URL ให้รองรับ playerType
+const generateAnym3uUrl = (videoUrl, subtitleUrl, playerType = 'jwplayer') => {
+  // playerType จะเป็น 'jwplayer' หรือ 'videojs'
+  let baseUrl = `https://anym3u8player.com/ultimate-player-generator/player.php?player=${playerType}&url=${videoUrl}&autoplay=1&muted=0&controls=auto&theme=default`;
+  
   if (subtitleUrl) {
+    // Format subtitles: url:code:Name:Default
     baseUrl += `&subtitles=${subtitleUrl}:th:Thai:1`;
   }
+  
   return baseUrl;
 };
 
@@ -116,9 +121,15 @@ const VideoCard = ({ video, onClick }) => {
 
 const VideoPlayerModal = ({ video, onClose }) => {
   const [activeUrlIndex, setActiveUrlIndex] = useState(0);
+
   if (!video) return null;
   const currentUrl = video.urls[activeUrlIndex];
-  const isServer2 = activeUrlIndex === 1;
+  
+  // กำหนด Player Type ตาม Server ที่เลือก
+  // Index 0 (Server 1) = jwplayer
+  // Index 1 (Server 2) = videojs
+  const playerType = activeUrlIndex === 0 ? 'jwplayer' : 'videojs';
+  const embedUrl = generateAnym3uUrl(currentUrl, video.subtitles, playerType);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -127,21 +138,24 @@ const VideoPlayerModal = ({ video, onClose }) => {
           <h2 className="text-white font-semibold truncate pr-4">{video.name}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white bg-white/5 p-2 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-all"><X size={20} /></button>
         </div>
+        
+        {/* Player Container */}
         <div className="w-full bg-black relative group">
-          {isServer2 ? (
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
-              <iframe key={`s2-${currentUrl}`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} webkitallowfullscreen="true" mozallowfullscreen="true" allowFullScreen={true} frameBorder="0" allow="autoplay" src={generateAnym3uUrl(currentUrl, video.subtitles)} title="JWPlayer Frame" />
-            </div>
-          ) : (
-            <div className="aspect-video relative">
-              <video key={`s1-${currentUrl}`} controls autoPlay className="w-full h-full" poster={video.logo}>
-                <source src={currentUrl} type="video/mp4" />
-                {video.subtitles && <track label="Thai" kind="subtitles" srcLang="th" src={video.subtitles} default />}
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          )}
+          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
+            <iframe 
+              key={`${playerType}-${currentUrl}`} // Force reload when player or url changes
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
+              webkitallowfullscreen="true" 
+              mozallowfullscreen="true" 
+              allowFullScreen={true} 
+              frameBorder="0" 
+              allow="autoplay" 
+              src={embedUrl} 
+              title="Video Player" 
+            />
+          </div>
         </div>
+
         <div className="p-6 overflow-y-auto">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-1">
@@ -149,12 +163,12 @@ const VideoPlayerModal = ({ video, onClose }) => {
               <div className="flex flex-wrap gap-2">
                 {video.urls[0] && (
                   <button onClick={() => setActiveUrlIndex(0)} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${activeUrlIndex === 0 ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/50' : 'bg-[#252532] text-gray-400 hover:bg-[#2d2d3d] hover:text-gray-200'}`}>
-                    <span>Server 1</span><span className="text-[10px] bg-white/10 px-1 rounded text-gray-300">Default</span>{activeUrlIndex === 0 && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>}
+                    <span>Server 1</span><span className="text-[10px] bg-white/10 px-1 rounded text-gray-300">JWPlayer</span>{activeUrlIndex === 0 && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>}
                   </button>
                 )}
                 {video.urls[1] && (
                   <button onClick={() => setActiveUrlIndex(1)} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${activeUrlIndex === 1 ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/50' : 'bg-[#252532] text-gray-400 hover:bg-[#2d2d3d] hover:text-gray-200'}`}>
-                    <span>Server 2</span><span className="text-[10px] bg-white/10 px-1 rounded text-gray-300">JWPlayer</span>{activeUrlIndex === 1 && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>}
+                    <span>Server 2</span><span className="text-[10px] bg-white/10 px-1 rounded text-gray-300">VideoJS</span>{activeUrlIndex === 1 && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/>}
                   </button>
                 )}
               </div>
@@ -162,7 +176,7 @@ const VideoPlayerModal = ({ video, onClose }) => {
             <div className="flex-1 border-l border-white/5 pl-0 md:pl-6 md:border-l-0 lg:border-l">
                <h3 className="text-white font-medium mb-1">รายละเอียด</h3>
                <p className="text-gray-500 text-sm">หมวดหมู่: <span className="text-purple-400">{video.group}</span></p>
-               <p className="text-gray-500 text-sm mt-1 truncate">Playing: <span className="text-gray-300">{isServer2 ? 'Server 2 (JWPlayer)' : 'Server 1 (Native)'}</span></p>
+               <p className="text-gray-500 text-sm mt-1 truncate">Playing: <span className="text-gray-300">{playerType.toUpperCase()} (Anym3u8)</span></p>
                {video.subtitles && <p className="text-green-500 text-xs mt-2 px-2 py-1 bg-green-500/10 rounded inline-block border border-green-500/20">มีซับไทย</p>}
             </div>
           </div>
@@ -224,3 +238,5 @@ export default function App() {
     </div>
   );
 }
+
+
