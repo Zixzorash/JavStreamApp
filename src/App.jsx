@@ -39,10 +39,12 @@ const parseM3U = (content) => {
   return playlist;
 };
 
-// ปรับปรุงฟังก์ชันสร้าง URL ให้รองรับ playerType
+// ปรับปรุงฟังก์ชันสร้าง URL: กำหนด Autoplay ตามชนิด Player
 const generateAnym3uUrl = (videoUrl, subtitleUrl, playerType = 'jwplayer') => {
-  // playerType จะเป็น 'jwplayer' หรือ 'videojs'
-  let baseUrl = `https://anym3u8player.com/ultimate-player-generator/player.php?player=${playerType}&url=${videoUrl}&autoplay=1&muted=0&controls=auto&theme=default`;
+  // เงื่อนไข: ถ้าเป็น videojs (Server 2) ให้ปิด Autoplay (0), ถ้าไม่ใช่ (jwplayer) ให้เปิด (1)
+  const isAutoPlay = playerType === 'videojs' ? '0' : '1';
+  
+  let baseUrl = `https://anym3u8player.com/ultimate-player-generator/player.php?player=${playerType}&url=${videoUrl}&autoplay=${isAutoPlay}&muted=0&controls=auto&theme=default`;
   
   if (subtitleUrl) {
     // Format subtitles: url:code:Name:Default
@@ -126,8 +128,8 @@ const VideoPlayerModal = ({ video, onClose }) => {
   const currentUrl = video.urls[activeUrlIndex];
   
   // กำหนด Player Type ตาม Server ที่เลือก
-  // Index 0 (Server 1) = jwplayer
-  // Index 1 (Server 2) = videojs
+  // Index 0 (Server 1) = jwplayer (Autoplay ON)
+  // Index 1 (Server 2) = videojs (Autoplay OFF)
   const playerType = activeUrlIndex === 0 ? 'jwplayer' : 'videojs';
   const embedUrl = generateAnym3uUrl(currentUrl, video.subtitles, playerType);
 
@@ -176,7 +178,9 @@ const VideoPlayerModal = ({ video, onClose }) => {
             <div className="flex-1 border-l border-white/5 pl-0 md:pl-6 md:border-l-0 lg:border-l">
                <h3 className="text-white font-medium mb-1">รายละเอียด</h3>
                <p className="text-gray-500 text-sm">หมวดหมู่: <span className="text-purple-400">{video.group}</span></p>
-               <p className="text-gray-500 text-sm mt-1 truncate">Playing: <span className="text-gray-300">{playerType.toUpperCase()} (Anym3u8)</span></p>
+               <p className="text-gray-500 text-sm mt-1 truncate">
+                 Playing: <span className="text-gray-300">{playerType === 'jwplayer' ? 'JWPlayer (Autoplay)' : 'VideoJS (Manual)'}</span>
+               </p>
                {video.subtitles && <p className="text-green-500 text-xs mt-2 px-2 py-1 bg-green-500/10 rounded inline-block border border-green-500/20">มีซับไทย</p>}
             </div>
           </div>
