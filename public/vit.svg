@@ -1,19 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="512" height="512">
   <defs>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feFlood flood-color="#ffffff"/>
-      <feComposite in2="blur" operator="in"/>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bb86fc"/>
+      <stop offset="100%" stop-color="#6200ee"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feOffset in="blur" dx="5" dy="10"/>
     </filter>
   </defs>
-  <g filter="url(#glow)">
-    <path d="M100 200 Q50 100 150 100 Q200 100 200 200 Q200 300 150 300 Q50 300 100 200" fill="none" stroke="#ffffff" stroke-width="40"/>
-    <path d="M100 200 Q150 350 250 300 Q300 250 250 200" fill="none" stroke="#ffffff" stroke-width="40"/>
-  </g>
-  <text x="200" y="260" font-family="Arial, sans-serif" font-size="180" font-weight="bold" fill="#000000" text-anchor="middle" stroke="#ffffff" stroke-width="10">JAV</text>
-  <text x="200" y="260" font-family="Arial, sans-serif" font-size="180" font-weight="bold" fill="#ffffff" text-anchor="middle">JAV</text>
+  <!-- ตัวกล้องสีม่วง -->
+  <rect x="80" y="100" width="240" height="200" rx="40" ry="40" fill="url(#purpleGrad)" filter="url(#shadow)"/>
+  <!-- ลูกบอล 3 ลูกด้านบน (paw-like) -->
+  <circle cx="160" cy="80" r="30" fill="#ffffff"/>
+  <circle cx="220" cy="70" r="35" fill="#ffffff"/>
+  <circle cx="280" cy="80" r="30" fill="#ffffff"/>
+  <!-- หน้าจอ + ปุ่ม play -->
+  <rect x="120" y="140" width="160" height="120" rx="20" fill="#ffd8a8"/>
+  <polygon points="160,180 160,220 220,200" fill="#ffeb3b"/>
+  <!-- ส่วนยื่นข้าง (handle-like) -->
+  <ellipse cx="340" cy="200" rx="40" ry="60" fill="#ffd8a8"/>
 </svg>
